@@ -332,7 +332,7 @@ export default function ModeratorApp() {
                         {msgType === 'embed' && (
                             <div className="space-y-3 p-4 bg-[#1e1e1e] rounded border border-red-900/50">
                                 <div>
-                                    <label className="text-xs font-bold text-red-300 uppercase">Embed Title</label>
+                                    <label className="text-xs font-bold text-red-800 uppercase">Embed Title</label>
                                     <input 
                                         type="text" 
                                         value={embedTitle} onChange={(e) => setEmbedTitle(e.target.value)}
