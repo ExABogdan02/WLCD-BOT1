@@ -1,7 +1,7 @@
 {
   "name": "wildcards-bot",
   "productName": "Wildcards Bot",
-  "version": "0.7.1",
+  "version": "0.7.2",
   "description": "Management Bot",
   "main": "src/electron/main.js",
   "scripts": {

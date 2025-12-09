@@ -1,7 +1,7 @@
-const { app, BrowserWindow } = require('electron');
+const { app, BrowserWindow, dialog } = require('electron');
 const path = require('path');
-const bot = require('./bot');
 const { setupIpcHandlers } = require('./ipc');
+const bot = require('./bot');
 
 const IS_DEV = !app.isPackaged;
 
@@ -11,34 +11,42 @@ function createWindow() {
         height: 800,
         title: "WildCards Admin Tool",
         backgroundColor: '#121212',
-        
-        icon: path.join(__dirname, '../media/WLCD.jpg'), 
+        icon: IS_DEV 
+            ? path.join(__dirname, '../media/WLCD.jpg')
+            : path.join(process.resourcesPath, 'media/WLCD.jpg'),
         webPreferences: {
+            
             preload: path.join(__dirname, 'preload.js'),
             contextIsolation: true,
-            nodeIntegration: false
+            nodeIntegration: false,
+            devTools: true 
         }
     });
 
-    
     win.setMenuBarVisibility(false);
 
-    
     if (IS_DEV) {
-        
         win.loadURL('http://localhost:3000');
+        win.webContents.openDevTools();
+    } else {
+        const indexPath = path.join(__dirname, '../../build/index.html');
+        
+        win.loadFile(indexPath).catch(e => {
+            console.error('Failed to load app:', e);
+        });
+        
         
         win.webContents.openDevTools(); 
-    } else {
-        
-        const indexPath = path.join(app.getAppPath(), 'build', 'index.html');
-        win.loadFile(indexPath).catch(e => console.error('Failed to load index.html:', e));
     }
 }
 
-app.whenReady().then(async () => {
-    setupIpcHandlers();
-    createWindow();
+app.whenReady().then(() => {
+    try {
+        setupIpcHandlers();
+        createWindow();
+    } catch (e) {
+        dialog.showErrorBox("Startup Error", e.message);
+    }
 });
 
 app.on('window-all-closed', () => {

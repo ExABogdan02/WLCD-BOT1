@@ -3,18 +3,29 @@ const bot = require('./bot');
 
 function setupIpcHandlers() {
 
-    //LOGIN
-    ipcMain.handle('login-bot', async (event, token) => {
+    
+    const safeHandle = (channel, handler) => {
+        ipcMain.removeHandler(channel); 
+        ipcMain.handle(channel, handler);
+    };
+
+    
+    safeHandle('login-bot', async (event, token) => {
         return await bot.login(token); 
     });
 
-    //GET CHANNELS
-    ipcMain.handle('get-channels', async () => {
-        return await bot.getTextChannels();
+    
+    safeHandle('get-guilds', async () => {
+        return await bot.getGuilds();
     });
 
-    //Select Image Dialog
-    ipcMain.handle('select-image', async () => {
+    
+    safeHandle('get-channels', async (event, guildId) => {
+        return await bot.getTextChannels(guildId);
+    });
+
+    
+    safeHandle('select-image', async () => {
         const result = await dialog.showOpenDialog({
             properties: ['openFile'],
             filters: [
@@ -28,23 +39,29 @@ function setupIpcHandlers() {
         return result.filePaths[0];
     });
 
-    //Send Message
-    ipcMain.handle('send-discord-msg', async (event, data) => {
+    
+    safeHandle('send-discord-msg', async (event, data) => {
         try {
-            const { channelId, type, content, embedData, pollOptions, imagePath } = data;
-            await bot.sendMessage(channelId, type, content, embedData, pollOptions, imagePath);
+            const { channelId, type, content, embedData, pollOptions, imagePath, pollDuration } = data;
+            
+            await bot.sendMessage(channelId, type, content, embedData, pollOptions, imagePath, pollDuration);
+            
             return { success: true };
         } catch (err) {
             return { success: false, error: err.message };
         }
     });
 
-    //Create Prospect Thread
-    ipcMain.handle('create-prospect-thread', async (event, data) => {
+    // FIXED: typo "ger-members" → "get-members"
+    safeHandle('get-members', async (event, guildId) => {
+        return await bot.getGuildMembers(guildId);
+    });
+
+    
+    safeHandle('create-prospect-thread', async (event, data) => {
         try {
             const { channelId, threadName, content, emoji, imagePath } = data;
             
-            // Pass the imagePath to the bot function
             await bot.createProspectThread(channelId, threadName, content, emoji, imagePath);
             
             return { success: true };
